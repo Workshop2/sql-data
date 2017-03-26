@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -39,7 +38,10 @@ namespace SqlData.Core.Tracking
         {
             Snapshot now = GetSnapshot();
 
-            List<string> changedTables = _latestSnapshot.Where(x => x.Value != now[x.Key]).Select(x => x.Key).ToList();
+            List<string> changedTables = _latestSnapshot
+                                            .Where(x => x.Value != now[x.Key])
+                                            .Select(x => x.Key)
+                                            .ToList();
 
             if (!changedTables.Any())
             {
