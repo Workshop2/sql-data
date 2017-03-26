@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -8,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("SqlData.Core")]
 [assembly: AssemblyDescription("Contains logic to store, wipe or dump sql data directly to a database for Integration Testing.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Energy Sketch")]
+[assembly: AssemblyCompany("Workshop2")]
 [assembly: AssemblyProduct("SqlData.Core")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
