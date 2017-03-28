@@ -10,4 +10,7 @@
     <description>$description$</description>
     <copyright>Copyright 2017</copyright>
   </metadata>
+  <files>
+	<file src="..\SqlData.Console.Tool\bin\Release\**.**" target="tools" />
+  </files>
 </package>
