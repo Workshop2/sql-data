@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using Dapper;
+using SqlData.Core.CommonSql;
 
 namespace SqlData.Core
 {
@@ -31,10 +32,8 @@ namespace SqlData.Core
         {
             ClearOldFiles(_directory);
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnector().Connect(_connectionString))
             {
-                sqlConnection.Open();
-
                 foreach (var table in Tables(sqlConnection))
                 {
                     string file = Path.Combine(_directory, table + ".data");

@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using SqlData.Core.CommonSql;
 
 namespace SqlData.Core
 {
@@ -39,10 +40,8 @@ namespace SqlData.Core
 
         public void Execute()
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnector().Connect(_connectionString))
             {
-                connection.Open();
-
                 SqlConstraints.DisableAllConstraints(connection);
                 Execute(connection);
                 SqlConstraints.EnableAllConstraints(connection);

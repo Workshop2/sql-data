@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using SqlData.Core.CommonSql;
 
 namespace SqlData.Core
 {
@@ -14,10 +15,8 @@ namespace SqlData.Core
 
         public void Execute()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnector().Connect(_connectionString))
             {
-                sqlConnection.Open();
-
                 SqlConstraints.DisableAllConstraints(sqlConnection);
 
                 using (var command = sqlConnection.CreateCommand())
@@ -48,10 +47,8 @@ namespace SqlData.Core
 
         public void Execute(string tableName)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnector().Connect(_connectionString))
             {
-                connection.Open();
-
                 Execute(connection, tableName);
             }
         }
