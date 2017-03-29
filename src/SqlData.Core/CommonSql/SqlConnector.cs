@@ -9,7 +9,7 @@ namespace SqlData.Core.CommonSql
         public SqlConnection Connect(string connectionString)
         {
             return Policy
-                 .Handle<SqlException>(exception => exception.Message.Contains("No process is on the other end of the pipe"))
+                 .Handle<SqlException>()
                  .WaitAndRetry(new[] { TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10) })
                  .Execute(() =>
                  {
