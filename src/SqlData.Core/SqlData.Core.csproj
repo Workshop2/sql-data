@@ -5,12 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.50.5" />
-    <PackageReference Include="Polly" Version="6.0.1" />
+    <None Remove="CommonSql\Scripts\ChecksumForAllTables.sql" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="CommonSql\Scripts\" />
+    <EmbeddedResource Include="CommonSql\Scripts\ChecksumForAllTables.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="Polly" Version="6.0.1" />
   </ItemGroup>
 
 </Project>
