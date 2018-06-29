@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Configuration;
+using System.IO;
+using Microsoft.Extensions.Configuration;
 using SqlData.Core;
 
 namespace SqlData.Console.Tool
@@ -8,8 +9,14 @@ namespace SqlData.Console.Tool
     {
         static void Main(string[] args)
         {
-            string connectionString = ConfigurationManager.ConnectionStrings["database-target"].ConnectionString;
-            string directory = ConfigurationManager.AppSettings["directory-target"];
+            var configurationBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            var configuration = configurationBuilder.Build();
+
+            var connectionString = configuration["ConnectionStrings:database-target"];
+            var directory = configuration["Values:directory-target"];
 
             while (true)
             {
@@ -17,7 +24,7 @@ namespace SqlData.Console.Tool
 
                 try
                 {
-                    bool canContinue = ExecuteInput(input, connectionString, directory);
+                    var canContinue = ExecuteInput(input, connectionString, directory);
 
                     if (!canContinue)
                     {
