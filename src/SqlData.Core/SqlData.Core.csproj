@@ -1,12 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <Description>Contains logic to store, wipe or dump sql data directly to a database for Integration Testing.</Description>
+    <Company>Workshop2</Company>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="CommonSql\Scripts\ChecksumForAllTables.sql" />
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="CommonSql\Scripts\ChecksumForAllTables.sql" />
