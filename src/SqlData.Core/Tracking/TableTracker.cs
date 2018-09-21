@@ -55,7 +55,7 @@ namespace SqlData.Core.Tracking
                 SqlConstraints.DisableAllConstraints(connection);
 
                 var tasks = changedTables
-                    .Select(x => dataWiper.ExecuteAsync(connection, x));
+                    .Select(x => dataWiper.ExecuteAsync(_connectionString, x));
 
                 Task.WhenAll(tasks)
                     .GetAwaiter()
