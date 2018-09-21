@@ -5,9 +5,9 @@ using SqlData.Core;
 
 namespace SqlData.Console.Tool
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var configurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -50,9 +50,9 @@ namespace SqlData.Console.Tool
             System.Console.WriteLine("What would you like to do?");
 
             System.Console.ForegroundColor = ConsoleColor.Green;
-            System.Console.WriteLine("1= DataToFile");
-            System.Console.WriteLine("2= Wipe Data");
-            System.Console.WriteLine("3= DataToSql");
+            System.Console.WriteLine("1= Write SQL data to disk (DataToFile)");
+            System.Console.WriteLine("2= Wipe All Data from SQL Database (WipeData)");
+            System.Console.WriteLine("3= Restore data to SQL Database from disk (DataToSql)");
             System.Console.WriteLine("4= Exit");
             System.Console.ForegroundColor = ConsoleColor.Yellow;
 

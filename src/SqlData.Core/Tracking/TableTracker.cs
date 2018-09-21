@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using SqlData.Core.CommonSql;
@@ -64,7 +62,7 @@ namespace SqlData.Core.Tracking
                     .GetResult();
                 
                 var toSql = new DataToSql(_connectionString, _directory, changedTables);
-                toSql.Execute(connection);
+                toSql.Execute();
 
                 SqlConstraints.EnableAllConstraints(connection);
             }

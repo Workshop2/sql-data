@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SqlData.Core.CommonSql;
 
 namespace SqlData.Core
@@ -38,48 +39,50 @@ namespace SqlData.Core
             _tables = tables.Select(x => x.Replace("[", string.Empty).Replace("]", string.Empty)).ToList();
         }
 
-        public void Execute()
+        public void DisableConstraintsAndExecute()
         {
             using (var connection = new SqlConnector().Connect(_connectionString))
             {
                 SqlConstraints.DisableAllConstraints(connection);
-                Execute(connection);
+                Execute();
                 SqlConstraints.EnableAllConstraints(connection);
             }
         }
 
-        public void Execute(SqlConnection connection)
+        public void Execute()
+        {
+            var tasks = Directory.GetFiles(_directory, "*.data")
+                .Select(UpdateTable);
+
+            Task.WhenAll(tasks)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        private async Task UpdateTable(string dataFile)
         {
             using (var sqlBulkCopy = new SqlBulkCopy(_connectionString, SqlBulkCopyOptions.KeepIdentity))
             {
-                foreach (var dataFile in Directory.GetFiles(_directory, "*.data"))
-                {
-                    UpdateTable(dataFile, sqlBulkCopy);
-                }
-            }
-        }
+                var tableName = Path.GetFileNameWithoutExtension(dataFile);
 
-        private void UpdateTable(string dataFile, SqlBulkCopy sqlBulkCopy)
-        {
-            var tableName = Path.GetFileNameWithoutExtension(dataFile);
-
-            if (_tables.Any() && !_tables.Any(x => x.Equals(tableName)))
-            {
-                return;
-            }
-
-            using (var dataSet = new DataSet())
-            {
-                dataSet.ReadXml(dataFile);
-
-                if (dataSet.Tables.Count <= 0)
+                if (_tables.Any() && !_tables.Any(x => x.Equals(tableName)))
                 {
                     return;
                 }
 
-                // should only need to execute table 0
-                sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
-                sqlBulkCopy.WriteToServer(dataSet.Tables[0]);
+                using (var dataSet = new DataSet())
+                {
+                    dataSet.ReadXml(dataFile);
+
+                    if (dataSet.Tables.Count <= 0)
+                    {
+                        return;
+                    }
+
+                    // should only need to execute table 0
+                    sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
+                    await sqlBulkCopy.WriteToServerAsync(dataSet.Tables[0]);
+                }
             }
         }
     }
