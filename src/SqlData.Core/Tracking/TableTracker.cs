@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using SqlData.Core.CommonSql;
@@ -38,9 +39,9 @@ namespace SqlData.Core.Tracking
         {
             var now = GetSnapshot();
             var changedTables = _latestSnapshot
-                                            .Where(x => x.Value != now[x.Key])
-                                            .Select(x => x.Key)
-                                            .ToList();
+                .Where(x => x.Value != now[x.Key])
+                .Select(x => x.Key)
+                .ToList();
 
             if (!changedTables.Any())
             {
@@ -61,8 +62,8 @@ namespace SqlData.Core.Tracking
                     .GetAwaiter()
                     .GetResult();
                 
-                var toSql = new DataToSql(_connectionString, _directory, changedTables);
-                toSql.Execute();
+                new DataToSql(_connectionString, _directory, changedTables)
+                    .Execute();
 
                 SqlConstraints.EnableAllConstraints(connection);
             }

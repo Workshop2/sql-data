@@ -14,12 +14,11 @@ namespace SqlData.Core
         private readonly string _connectionString;
         private readonly string _directory;
         private readonly List<string> _tables;
+        private static Dictionary<string, DataSet> ScriptCache = new Dictionary<string, DataSet>();
 
         public DataToSql(string connectionString, string directory)
             : this(connectionString, directory, new List<string>())
-        {
-
-        }
+        { }
 
         public DataToSql(string connectionString, string directory, IEnumerable<string> tables)
         {
@@ -70,19 +69,26 @@ namespace SqlData.Core
                     return;
                 }
 
-                using (var dataSet = new DataSet())
+                DataSet dataSet;
+                if (ScriptCache.ContainsKey(tableName))
                 {
-                    dataSet.ReadXml(dataFile);
-
-                    if (dataSet.Tables.Count <= 0)
-                    {
-                        return;
-                    }
-
-                    // should only need to execute table 0
-                    sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
-                    await sqlBulkCopy.WriteToServerAsync(dataSet.Tables[0]);
+                    dataSet = ScriptCache[tableName];
                 }
+                else
+                {
+                    dataSet = new DataSet();
+                    dataSet.ReadXml(dataFile);
+                    ScriptCache[tableName] = dataSet;
+                }
+
+                if (dataSet.Tables.Count <= 0)
+                {
+                    return;
+                }
+
+                // should only need to execute table 0
+                sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
+                await sqlBulkCopy.WriteToServerAsync(dataSet.Tables[0]);
             }
         }
     }
