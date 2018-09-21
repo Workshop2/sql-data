@@ -47,53 +47,23 @@ namespace SqlData.Core
             }
         }
 
-        public void Execute(string tableName)
-        {
-            using (var connection = new SqlConnector().Connect(_connectionString))
-            {
-                Execute(connection, tableName);
-            }
-        }
+        private const string WipeTableSql = @"
+                                            If ObjectProperty(Object_ID('{0}'), 'TableHasForeignRef') = 1
+                                            Begin
+                                                Delete From {0}
+                                            End
+                                            Else
+                                            Begin
+                                                Truncate Table {0}
+                                            End
+                                        ";
 
         /// <summary>
         /// Expects constraints to be disabled already
         /// </summary>
-        public void Execute(SqlConnection connection, string tableName)
-        {
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandType = CommandType.Text;
-                const string sql = @"
-                                            If ObjectProperty(Object_ID('{0}'), 'TableHasForeignRef') = 1
-                                            Begin
-                                                Delete From {0}
-                                            End
-                                            Else
-                                            Begin
-                                                Truncate Table {0}
-                                            End
-                                        ";
-
-                command.CommandText = string.Format(sql, tableName);
-
-                command.ExecuteNonQuery();
-            }
-        }
-
         public async Task ExecuteAsync(SqlConnection connection, string tableName)
         {
-            const string sql = @"
-                                            If ObjectProperty(Object_ID('{0}'), 'TableHasForeignRef') = 1
-                                            Begin
-                                                Delete From {0}
-                                            End
-                                            Else
-                                            Begin
-                                                Truncate Table {0}
-                                            End
-                                        ";
-            
-            await connection.ExecuteAsync(sql);
+            await connection.ExecuteAsync(string.Format(WipeTableSql, tableName));
         }
     }
 }
