@@ -1,5 +1,7 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
+using Dapper;
 using SqlData.Core.CommonSql;
 
 namespace SqlData.Core
@@ -64,14 +66,10 @@ namespace SqlData.Core
                 const string sql = @"
                                             If ObjectProperty(Object_ID('{0}'), 'TableHasForeignRef') = 1
                                             Begin
-                                                -- Just to know what all table used delete syntax.
-                                                Print 'Delete from ' + '{0}'
                                                 Delete From {0}
                                             End
                                             Else
                                             Begin
-                                                -- Just to know what all table used Truncate syntax.
-                                                Print 'Truncate Table ' + '{0}'
                                                 Truncate Table {0}
                                             End
                                         ";
@@ -80,6 +78,22 @@ namespace SqlData.Core
 
                 command.ExecuteNonQuery();
             }
+        }
+
+        public async Task ExecuteAsync(SqlConnection connection, string tableName)
+        {
+            const string sql = @"
+                                            If ObjectProperty(Object_ID('{0}'), 'TableHasForeignRef') = 1
+                                            Begin
+                                                Delete From {0}
+                                            End
+                                            Else
+                                            Begin
+                                                Truncate Table {0}
+                                            End
+                                        ";
+            
+            await connection.ExecuteAsync(sql);
         }
     }
 }

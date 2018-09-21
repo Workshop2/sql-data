@@ -54,25 +54,32 @@ namespace SqlData.Core
             {
                 foreach (var dataFile in Directory.GetFiles(_directory, "*.data"))
                 {
-                    string tableName = Path.GetFileNameWithoutExtension(dataFile);
-
-                    if (_tables.Any() && !_tables.Any(x => x.Equals(tableName)))
-                    {
-                        continue;
-                    }
-
-                    using (var dataSet = new DataSet())
-                    {
-                        dataSet.ReadXml(dataFile);
-
-                        if (dataSet.Tables.Count > 0)
-                        {
-                            // should only need to execute table 0
-                            sqlBulkCopy.DestinationTableName = CommonSql.Sql.GetSafeTableName(tableName);
-                            sqlBulkCopy.WriteToServer(dataSet.Tables[0]);
-                        }
-                    }
+                    UpdateTable(dataFile, sqlBulkCopy);
                 }
+            }
+        }
+
+        private void UpdateTable(string dataFile, SqlBulkCopy sqlBulkCopy)
+        {
+            var tableName = Path.GetFileNameWithoutExtension(dataFile);
+
+            if (_tables.Any() && !_tables.Any(x => x.Equals(tableName)))
+            {
+                return;
+            }
+
+            using (var dataSet = new DataSet())
+            {
+                dataSet.ReadXml(dataFile);
+
+                if (dataSet.Tables.Count <= 0)
+                {
+                    return;
+                }
+
+                // should only need to execute table 0
+                sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
+                sqlBulkCopy.WriteToServer(dataSet.Tables[0]);
             }
         }
     }

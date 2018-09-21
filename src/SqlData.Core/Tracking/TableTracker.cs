@@ -5,6 +5,8 @@ using System.Data.SqlClient;
 using System.IO;
 using SqlData.Core.CommonSql;
 using System.Linq;
+using System.Threading.Tasks;
+using Dapper;
 
 namespace SqlData.Core.Tracking
 {
@@ -36,9 +38,8 @@ namespace SqlData.Core.Tracking
 
         public void RevertToSnapshot()
         {
-            Snapshot now = GetSnapshot();
-
-            List<string> changedTables = _latestSnapshot
+            var now = GetSnapshot();
+            var changedTables = _latestSnapshot
                                             .Where(x => x.Value != now[x.Key])
                                             .Select(x => x.Key)
                                             .ToList();
@@ -48,19 +49,21 @@ namespace SqlData.Core.Tracking
                 return;
             }
 
-            DataWiper dataWiper = new DataWiper(_connectionString);
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            var dataWiper = new DataWiper(_connectionString);
+            using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
 
                 SqlConstraints.DisableAllConstraints(connection);
 
-                foreach (string tableName in changedTables)
-                {
-                    dataWiper.Execute(connection, tableName);
-                }
+                var tasks = changedTables
+                    .Select(x => dataWiper.ExecuteAsync(connection, x));
 
-                DataToSql toSql = new DataToSql(_connectionString, _directory, changedTables);
+                Task.WhenAll(tasks)
+                    .GetAwaiter()
+                    .GetResult();
+                
+                var toSql = new DataToSql(_connectionString, _directory, changedTables);
                 toSql.Execute(connection);
 
                 SqlConstraints.EnableAllConstraints(connection);
@@ -71,38 +74,19 @@ namespace SqlData.Core.Tracking
 
         private Snapshot GetSnapshot()
         {
-            Snapshot result = new Snapshot();
-
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                var checksums = connection
+                    .Query<TableChecksumDao>(Sql.ChecksumForAllTables());
 
-                using (SqlCommand command = connection.CreateCommand())
+                var result = new Snapshot();
+                foreach (var tableChecksum in checksums)
                 {
-                    command.CommandText = Sql.ChecksumForAllTables();
-                    command.CommandType = CommandType.Text;
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        int tableNameOrdinal = reader.GetOrdinal("TableName");
-                        int checksumOrdinal = reader.GetOrdinal("Checksum");
-
-                        while (reader.Read())
-                        {
-                            if (reader.IsDBNull(tableNameOrdinal))
-                            {
-                                continue;
-                            }
-
-                            int checkSum = reader.IsDBNull(checksumOrdinal) ? 0 : reader.GetInt32(checksumOrdinal);
-
-                            result[reader.GetString(tableNameOrdinal)] = checkSum;
-                        }
-                    }
+                    result[tableChecksum.TableName] = tableChecksum.Checksum;
                 }
-            }
 
-            return result;
+                return result;
+            }
         }
     }
 }
