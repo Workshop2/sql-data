@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using SqlData.Core.CommonSql;
 using System.Linq;
@@ -32,12 +32,17 @@ namespace SqlData.Core.Tracking
 
         public void TakeSnapshot()
         {
+            var stopWatch = Stopwatch.StartNew();
             _latestSnapshot = GetSnapshot();
+            Console.WriteLine($"TakeSnapshot {stopWatch.ElapsedMilliseconds} Milliseconds");
         }
 
         public void RevertToSnapshot()
         {
+            var stopWatch = Stopwatch.StartNew();
             var now = GetSnapshot();
+            Console.WriteLine($"Get snapshot {stopWatch.ElapsedMilliseconds} Milliseconds");
+
             var changedTables = _latestSnapshot
                 .Where(x => x.Value != now[x.Key])
                 .Select(x => x.Key)
@@ -53,22 +58,26 @@ namespace SqlData.Core.Tracking
             {
                 connection.Open();
 
+                stopWatch.Restart();
                 SqlConstraints.DisableAllConstraints(connection);
+                Console.WriteLine($"DisableAllConstraints {stopWatch.ElapsedMilliseconds} Milliseconds");
 
-                var tasks = changedTables
-                    .Select(x => dataWiper.ExecuteAsync(_connectionString, x));
+                stopWatch.Restart();
+                foreach (var changedTable in changedTables)
+                {
+                    dataWiper.Execute(connection, changedTable);
+                }
+                Console.WriteLine($"dataWiper {stopWatch.ElapsedMilliseconds} Milliseconds");
 
-                Task.WhenAll(tasks)
-                    .GetAwaiter()
-                    .GetResult();
-                
+                stopWatch.Restart();
                 new DataToSql(_connectionString, _directory, changedTables)
                     .Execute();
+                Console.WriteLine($"DataToSql {stopWatch.ElapsedMilliseconds} Milliseconds");
 
+                stopWatch.Restart();
                 SqlConstraints.EnableAllConstraints(connection);
+                Console.WriteLine($"EnableAllConstraints {stopWatch.ElapsedMilliseconds} Milliseconds");
             }
-
-            TakeSnapshot();
         }
 
         private Snapshot GetSnapshot()

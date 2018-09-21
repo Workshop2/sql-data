@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Data;
 using System.Data.SqlClient;
+using Dapper;
 using Polly;
 
 namespace SqlData.Core
@@ -14,13 +14,7 @@ namespace SqlData.Core
                 .WaitAndRetry(new[] { TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10) })
                 .Execute(() =>
                 {
-                    using (var command = sqlConnection.CreateCommand())
-                    {
-                        command.CommandType = CommandType.Text;
-                        command.CommandText = "EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';";
-
-                        command.ExecuteNonQuery();
-                    }
+                    sqlConnection.Execute("EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';");
                 });
         }
 
@@ -31,13 +25,7 @@ namespace SqlData.Core
                 .WaitAndRetry(new[] { TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10) })
                 .Execute(() =>
                 {
-                    using (var command = sqlConnection.CreateCommand())
-                    {
-                        command.CommandType = CommandType.Text;
-                        command.CommandText = "EXEC sp_MSForEachTable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';";
-
-                        command.ExecuteNonQuery();
-                    }
+                    sqlConnection.Execute("EXEC sp_MSForEachTable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';");
                 });
         }
     }

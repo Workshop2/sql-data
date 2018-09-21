@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using SqlData.Core;
+using SqlData.Core.Tracking;
 
 namespace SqlData.Console.Tool
 {
     public class Program
     {
+        private static TableTracker TableTracker { get; set; }
+
         public static void Main(string[] args)
         {
             var configurationBuilder = new ConfigurationBuilder()
@@ -17,6 +21,8 @@ namespace SqlData.Console.Tool
 
             var connectionString = configuration["ConnectionStrings:database-target"];
             var directory = configuration["Values:directory-target"];
+
+            TableTracker = new TableTracker(connectionString, directory);
 
             while (true)
             {
@@ -53,7 +59,9 @@ namespace SqlData.Console.Tool
             System.Console.WriteLine("1= Write SQL data to disk (DataToFile)");
             System.Console.WriteLine("2= Wipe All Data from SQL Database (WipeData)");
             System.Console.WriteLine("3= Restore data to SQL Database from disk (DataToSql)");
-            System.Console.WriteLine("4= Exit");
+            System.Console.WriteLine("4= Take snapshot");
+            System.Console.WriteLine("5= Revert to snapshot");
+            System.Console.WriteLine("e= Exit");
             System.Console.ForegroundColor = ConsoleColor.Yellow;
 
             ConsoleKeyInfo input = System.Console.ReadKey();
@@ -96,10 +104,20 @@ namespace SqlData.Console.Tool
                 case '3':
                     System.Console.WriteLine("Deploying data to database \n {0} From \n {1}", connectionString, directory);
 
-                    DataToSql dataToSql = new DataToSql(connectionString, directory);
+                    var dataToSql = new DataToSql(connectionString, directory);
                     dataToSql.Execute();
                     break;
                 case '4':
+                    TableTracker.TakeSnapshot();
+                    break;
+                case '5':
+                    var stopWatch = Stopwatch.StartNew();
+                    TableTracker.RevertToSnapshot();
+                    System.Console.WriteLine($"Took {stopWatch.Elapsed.TotalMilliseconds} Milliseconds");
+
+                    break;
+
+                case 'e':
                     return false;
                 default:
                     System.Console.ForegroundColor = ConsoleColor.Red;

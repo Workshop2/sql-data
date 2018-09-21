@@ -50,46 +50,44 @@ namespace SqlData.Core
 
         public void Execute()
         {
-            var tasks = Directory.GetFiles(_directory, "*.data")
-                .Select(UpdateTable);
-
-            Task.WhenAll(tasks)
-                .GetAwaiter()
-                .GetResult();
-        }
-
-        private async Task UpdateTable(string dataFile)
-        {
             using (var sqlBulkCopy = new SqlBulkCopy(_connectionString, SqlBulkCopyOptions.KeepIdentity))
             {
-                var tableName = Path.GetFileNameWithoutExtension(dataFile);
-
-                if (_tables.Any() && !_tables.Any(x => x.Equals(tableName)))
+                foreach (var dataFile in Directory.GetFiles(_directory, "*.data"))
                 {
-                    return;
+                    UpdateTable(sqlBulkCopy, dataFile);
                 }
-
-                DataSet dataSet;
-                if (ScriptCache.ContainsKey(tableName))
-                {
-                    dataSet = ScriptCache[tableName];
-                }
-                else
-                {
-                    dataSet = new DataSet();
-                    dataSet.ReadXml(dataFile);
-                    ScriptCache[tableName] = dataSet;
-                }
-
-                if (dataSet.Tables.Count <= 0)
-                {
-                    return;
-                }
-
-                // should only need to execute table 0
-                sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
-                await sqlBulkCopy.WriteToServerAsync(dataSet.Tables[0]);
             }
+        }
+
+        private void UpdateTable(SqlBulkCopy sqlBulkCopy, string dataFile)
+        {
+            var tableName = Path.GetFileNameWithoutExtension(dataFile);
+
+            if (_tables.Any() && !_tables.Any(x => x.Equals(tableName)))
+            {
+                return;
+            }
+
+            DataSet dataSet;
+            if (ScriptCache.ContainsKey(tableName))
+            {
+                dataSet = ScriptCache[tableName];
+            }
+            else
+            {
+                dataSet = new DataSet();
+                dataSet.ReadXml(dataFile);
+                ScriptCache[tableName] = dataSet;
+            }
+
+            if (dataSet.Tables.Count <= 0)
+            {
+                return;
+            }
+
+            // should only need to execute table 0
+            sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
+            sqlBulkCopy.WriteToServer(dataSet.Tables[0]);
         }
     }
 }
