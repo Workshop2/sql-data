@@ -61,11 +61,12 @@ namespace SqlData.Core
         /// <summary>
         /// Expects constraints to be disabled already
         /// </summary>
-        public Task ExecuteAsync(string connectionString, string tableName)
+        public async Task ExecuteAsync(string connectionString, string tableName)
         {
             using (var sqlConnection = new SqlConnection(connectionString))
             {
-                return sqlConnection.ExecuteAsync(string.Format(WipeTableSql, tableName));
+                await sqlConnection.OpenAsync();
+                await sqlConnection.ExecuteAsync(string.Format(WipeTableSql, tableName));
             }
         }
     }
