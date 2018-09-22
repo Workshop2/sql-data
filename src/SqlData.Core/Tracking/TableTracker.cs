@@ -39,9 +39,9 @@ namespace SqlData.Core.Tracking
 
         public void RevertToSnapshot()
         {
-            var stopWatch = Stopwatch.StartNew();
+            //var stopWatch = Stopwatch.StartNew();
             var now = GetSnapshot();
-            Console.WriteLine($"Get snapshot {stopWatch.ElapsedMilliseconds} Milliseconds");
+            //Console.WriteLine($"Get snapshot {stopWatch.ElapsedMilliseconds} Milliseconds");
 
             var changedTables = _latestSnapshot
                 .Where(x => x.Value != now[x.Key])
@@ -58,25 +58,25 @@ namespace SqlData.Core.Tracking
             {
                 connection.Open();
 
-                stopWatch.Restart();
+                //stopWatch.Restart();
                 SqlConstraints.DisableAllConstraints(connection);
-                Console.WriteLine($"DisableAllConstraints {stopWatch.ElapsedMilliseconds} Milliseconds");
+                //Console.WriteLine($"DisableAllConstraints {stopWatch.ElapsedMilliseconds} Milliseconds");
 
-                stopWatch.Restart();
+                //stopWatch.Restart();
                 foreach (var changedTable in changedTables)
                 {
                     dataWiper.Execute(connection, changedTable);
                 }
-                Console.WriteLine($"dataWiper {stopWatch.ElapsedMilliseconds} Milliseconds");
+                //Console.WriteLine($"dataWiper {stopWatch.ElapsedMilliseconds} Milliseconds");
 
-                stopWatch.Restart();
+                //stopWatch.Restart();
                 new DataToSql(_connectionString, _directory, changedTables)
                     .Execute();
-                Console.WriteLine($"DataToSql {stopWatch.ElapsedMilliseconds} Milliseconds");
+                //Console.WriteLine($"DataToSql {stopWatch.ElapsedMilliseconds} Milliseconds");
 
-                stopWatch.Restart();
-                SqlConstraints.EnableAllConstraints(connection);
-                Console.WriteLine($"EnableAllConstraints {stopWatch.ElapsedMilliseconds} Milliseconds");
+                //stopWatch.Restart();
+                SqlConstraints.EnableAllConstraintsQuick(connection);
+                //Console.WriteLine($"EnableAllConstraints {stopWatch.ElapsedMilliseconds} Milliseconds");
             }
         }
 
