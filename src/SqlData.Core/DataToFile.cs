@@ -81,7 +81,7 @@ namespace SqlData.Core
 
         private IEnumerable<string> Tables(SqlConnection sqlConnection)
         {
-            return sqlConnection.Query<string>("SELECT [TABLE_SCHEMA]  + '.' + [TABLE_NAME] FROM information_schema.tables WHERE [TABLE_NAME] <> 'sysdiagrams';");
+            return sqlConnection.Query<string>("SELECT [TABLE_SCHEMA]  + '.' + [TABLE_NAME] FROM information_schema.tables WHERE [TABLE_NAME] <> 'sysdiagrams' AND [TABLE_TYPE] <> 'VIEW';");
         }
     }
 }
