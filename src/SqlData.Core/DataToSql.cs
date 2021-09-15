@@ -54,7 +54,14 @@ namespace SqlData.Core
             {
                 foreach (var dataFile in Directory.GetFiles(_directory, "*.data"))
                 {
-                    UpdateTable(sqlBulkCopy, dataFile);
+                    try
+                    {
+                        UpdateTable(sqlBulkCopy, dataFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TableFailedToPopulate(dataFile, ex);
+                    }
                 }
             }
         }
