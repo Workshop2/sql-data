@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Xml.Linq;
 using SqlData.Core.CommonSql;
 
 namespace SqlData.Core
@@ -82,8 +82,7 @@ namespace SqlData.Core
             }
             else
             {
-                dataSet = new DataSet();
-                dataSet.ReadXml(dataFile);
+                dataSet = ReadTableFromDisk(dataFile);
                 ScriptCache[tableName] = dataSet;
             }
 
@@ -95,6 +94,40 @@ namespace SqlData.Core
             // should only need to execute table 0
             sqlBulkCopy.DestinationTableName = Sql.GetSafeTableName(tableName);
             sqlBulkCopy.WriteToServer(dataSet.Tables[0]);
+        }
+
+        private static DataSet ReadTableFromDisk(string dataFile)
+        {
+            var xmlFile = XDocument.Load(dataFile);
+            FixCrossPlatformGuidAssemblyReferences(xmlFile);
+
+            var dataSet = new DataSet();
+            dataSet.ReadXml(xmlFile.CreateReader());
+            return dataSet;
+        }
+
+        private static void FixCrossPlatformGuidAssemblyReferences(XContainer xmlFile)
+        {
+            XNamespace xs = "http://www.w3.org/2001/XMLSchema";
+            var columnSchemas = xmlFile
+                .Descendants(xs + "element")
+                .ToList();
+
+            var guidType = typeof(Guid);
+            var guidAssemblyName = guidType.AssemblyQualifiedName;
+
+            XNamespace msdata = "urn:schemas-microsoft-com:xml-msdata";
+            foreach (var element in columnSchemas)
+            {
+                var attributes = element.Attributes(msdata + "DataType");
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.Value.Contains("System.Guid"))
+                    {
+                        attribute.Value = guidAssemblyName;
+                    }
+                }
+            }
         }
     }
 }
