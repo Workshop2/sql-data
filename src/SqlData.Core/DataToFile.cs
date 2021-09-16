@@ -11,38 +11,40 @@ namespace SqlData.Core
     public class DataToFile
     {
         private readonly string _connectionString;
-        private readonly string _directory;
+        private readonly string _targetDirectory;
 
-        public DataToFile(string connectionString, string directory)
+        public DataToFile(string connectionString, string targetDirectory)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new NullReferenceException("connctionString");
 
-            if (string.IsNullOrEmpty(directory))
-                throw new NullReferenceException("directory");
+            if (string.IsNullOrEmpty(targetDirectory))
+                throw new NullReferenceException("targetDirectory");
 
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
+            if (!Directory.Exists(targetDirectory))
+            {
+                Directory.CreateDirectory(targetDirectory);
+            }
 
             _connectionString = connectionString;
-            _directory = Path.GetFullPath(directory);
+            _targetDirectory = Path.GetFullPath(targetDirectory);
         }
 
         public void Execute()
         {
-            ClearOldFiles(_directory);
+            ClearOldFiles(_targetDirectory);
 
             using (var sqlConnection = new SqlConnector().Connect(_connectionString))
             {
                 foreach (var table in Tables(sqlConnection))
                 {
-                    string file = Path.Combine(_directory, table + ".data");
+                    var file = Path.Combine(_targetDirectory, table + ".data");
 
                     using (var sqlDataAdapter = new SqlDataAdapter())
                     {
                         using (var command = sqlConnection.CreateCommand())
                         {
-                            command.CommandText = $"SELECT * FROM {CommonSql.Sql.GetSafeTableName(table)};";
+                            command.CommandText = $"SELECT * FROM {Sql.GetSafeTableName(table)};";
                             sqlDataAdapter.SelectCommand = command;
 
                             using (var dataSet = new DataSet())
