@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using SqlData.Core.CommonSql;
 using System.Linq;
-using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Data.SqlClient;
 
 namespace SqlData.Core.Tracking
 {

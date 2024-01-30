@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Data.SqlClient;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using Polly;
 
 namespace SqlData.Core
